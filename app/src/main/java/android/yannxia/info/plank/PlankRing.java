@@ -9,16 +9,43 @@ import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.View;
 
+import java.util.Timer;
+
 /**
  * Created by yann on 16/7/28.
  */
 public class PlankRing extends View {
 
-    private Paint plankRing;
+
+    static class PlankRingConfig {
+        Integer plankSec;
+        Integer restSec;
+        Integer ringCycle;
+    }
+
+    enum PlankRingStatus {
+        SOON_START, PLANKING, RESTING;
+
+        public PlankRingStatus nextStatus() {
+            if (this.equals(SOON_START)) return PLANKING;
+            if (this.equals(PLANKING)) return RESTING;
+            if (this.equals(RESTING)) return PLANKING;
+
+            return null;
+        }
+    }
+
+
     private RectF rectF;
+    private Integer alarmSec = 3;
+    private Integer ringCycle;
+    private Paint plankRing;
     private Paint plankSec;
     private Integer totalSec;
     private Integer curSec;
+    private PlankRingStatus plankRingStatus = PlankRingStatus.SOON_START;
+    private PlankRingConfig plankRingConfig;
+
 
     public PlankRing(Context context) {
         super(context);
@@ -30,9 +57,53 @@ public class PlankRing extends View {
         init();
     }
 
+    public void plusSec() {
+        this.curSec++;
+    }
+
+    public void setPlankRingConfig(PlankRingConfig plankRingConfig) {
+        if (PlankRingStatus.SOON_START.equals(this.plankRingStatus)) {
+            this.plankRingConfig = plankRingConfig;
+            this.totalSec = plankRingConfig.plankSec;
+            this.ringCycle = plankRingConfig.ringCycle;
+        }
+    }
+
+    public void switchStatus() {
+
+        this.plankRingStatus = this.plankRingStatus.nextStatus();
+        if (PlankRingStatus.PLANKING.equals(this.plankRingStatus)) {
+            this.ringCycle--;
+            this.totalSec = plankRingConfig.plankSec;
+        } else if (PlankRingStatus.RESTING.equals(this.plankRingStatus)) {
+            this.totalSec = plankRingConfig.restSec;
+        }
+
+        this.curSec = 0;
+        switchPaint();
+    }
+
+    private void switchPaint() {
+        switch (plankRingStatus) {
+            case SOON_START:
+                plankRing.setColor(Color.YELLOW);
+                break;
+            case PLANKING:
+                plankRing.setColor(Color.RED);
+                break;
+            case RESTING:
+                plankRing.setColor(Color.DKGRAY);
+                break;
+        }
+
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+
+        switchPaint();
+
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
         int circleXCenter = displayMetrics.widthPixels / 2;
         int circleYCenter = displayMetrics.heightPixels / 3;
@@ -67,44 +138,15 @@ public class PlankRing extends View {
         plankSec.setTextAlign(Paint.Align.CENTER);
     }
 
-
-    public Paint getPlankRing() {
-        return plankRing;
-    }
-
-    public void setPlankRing(Paint plankRing) {
-        this.plankRing = plankRing;
-    }
-
-    public RectF getRectF() {
-        return rectF;
-    }
-
-    public void setRectF(RectF rectF) {
-        this.rectF = rectF;
-    }
-
-    public Paint getPlankSec() {
-        return plankSec;
-    }
-
-    public void setPlankSec(Paint plankSec) {
-        this.plankSec = plankSec;
-    }
-
     public Integer getTotalSec() {
         return totalSec;
-    }
-
-    public void setTotalSec(Integer totalSec) {
-        this.totalSec = totalSec;
     }
 
     public Integer getCurSec() {
         return curSec;
     }
 
-    public void setCurSec(Integer curSec) {
-        this.curSec = curSec;
+    public Integer getRingCycle() {
+        return ringCycle;
     }
 }

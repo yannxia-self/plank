@@ -1,4 +1,18 @@
 <resources>
     <string name="app_name">Plank</string>
     <string name="plank_settings">Settings</string>
+
+    <string name="preference_file_key">plank_setting</string>
+
+    <string name="plank_settings_ring_time_key">plank_settings_ring_time_key</string>
+    <string name="plank_settings_ring_time">每组时间</string>
+    <string name="plank_settings_ring_time_hit">60</string>
+
+    <string name="plank_settings_ring_rest_time_key">plank_settings_ring_rest_time_key</string>
+    <string name="plank_settings_ring_rest_time">每组休息时间</string>
+    <string name="plank_settings_ring_rest_time_hit">10</string>
+
+    <string name="plank_settings_ring_cycles_key">plank_settings_ring_cycles_key</string>
+    <string name="plank_settings_ring_cycles">循环次数</string>
+    <string name="plank_settings_ring_cycles_hit">5</string>
 </resources>

@@ -1,5 +1,7 @@
 package android.yannxia.info.plank;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,66 +15,71 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
 
+import org.apache.commons.lang3.ObjectUtils;
+
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 public class PlankActivity extends AppCompatActivity {
 
+    private PlankRing plankRing;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_plank);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        final PlankRing plankRing = (PlankRing) findViewById(R.id.plank_ring);
+        plankRing = (PlankRing) findViewById(R.id.plank_ring);
         setSupportActionBar(toolbar);
         Button startButton = (Button) findViewById(R.id.start_button);
         final Timer timer = new Timer(true);
 
         if (plankRing != null && startButton != null) {
-            plankRing.setTotalSec(60);
-            plankRing.setCurSec(0);
-
+            final PlankRing.PlankRingConfig plankRingConfig = getPlankRingConfig();
+            plankRing.setPlankRingConfig(getPlankRingConfig());
+            plankRing.invalidate();;
             startButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     PlankRingTimerTask
-                            plankRingTimerTask = new PlankRingTimerTask(new PlankRingHandle(plankRing), timer, plankRing);
-
+                            plankRingTimerTask = new PlankRingTimerTask(new PlankRingHandle(plankRing), timer, plankRing, plankRingConfig);
                     timer.schedule(plankRingTimerTask, TimeUnit.SECONDS.toMillis(1), TimeUnit.SECONDS.toMillis(1));
                 }
             });
         }
     }
 
+
     class PlankRingTimerTask extends TimerTask {
 
         private PlankRingHandle plankRingHandle;
         private Timer timer;
         private PlankRing plankRing;
+        private PlankRing.PlankRingConfig plankRingConfig;
+        private Integer cycles;
 
-        public PlankRingTimerTask(PlankRingHandle plankRingHandle, Timer timer, PlankRing plankRing) {
+        public PlankRingTimerTask(PlankRingHandle plankRingHandle, Timer timer, PlankRing plankRing, PlankRing.PlankRingConfig plankRingConfig) {
             this.plankRingHandle = plankRingHandle;
             this.timer = timer;
             this.plankRing = plankRing;
+            this.plankRingConfig = plankRingConfig;
+            this.cycles = plankRingConfig.ringCycle;
         }
 
         @Override
         public void run() {
-            Bundle bundle = new Bundle();
-            bundle.putInt("curSec", plankRing.getCurSec() + 1);
-            Message message = new Message();
-            message.what = 1;
-            message.setData(bundle);
-            plankRingHandle.sendMessage(message);
-
-            if (plankRing.getTotalSec() < plankRing.getCurSec()) {
+            if (plankRing.getRingCycle() == 0 && (plankRing.getCurSec().equals(plankRing.getTotalSec()))) {
                 timer.cancel();
             }
+            Message message = new Message();
+            message.what = 1;
+            plankRingHandle.sendMessage(message);
         }
     }
 
-    class PlankRingHandle extends Handler {
+    static class PlankRingHandle extends Handler {
 
         private PlankRing plankRing;
 
@@ -84,8 +91,7 @@ public class PlankActivity extends AppCompatActivity {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case 1:
-                    int curSec = msg.getData().getInt("curSec");
-                    plankRing.setCurSec(curSec);
+                    plankRing.plusSec();
                     plankRing.invalidate();
             }
         }
@@ -108,9 +114,24 @@ public class PlankActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            startActivity(new Intent(this, PlankSettingActivity.class));
+            plankRing.setPlankRingConfig(getPlankRingConfig());
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
+
+
+    private PlankRing.PlankRingConfig getPlankRingConfig() {
+        PlankRing.PlankRingConfig plankRingConfig = new PlankRing.PlankRingConfig();
+
+        SharedPreferences sharedPref = getSharedPreferences(getString(R.string.preference_file_key), MODE_PRIVATE);
+        plankRingConfig.plankSec = sharedPref.getInt(getString(R.string.plank_settings_ring_time_key), 60);
+        plankRingConfig.restSec = sharedPref.getInt(getString(R.string.plank_settings_ring_rest_time_key), 5);
+        plankRingConfig.ringCycle = sharedPref.getInt(getString(R.string.plank_settings_ring_cycles_key), 5);
+
+        return plankRingConfig;
+    }
+
 }

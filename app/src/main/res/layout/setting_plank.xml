@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:width="100sp"
+        android:text="@string/plank_settings_ring_time" />
+
+    <EditText
+        android:id="@+id/plank_settings_ring_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:width="100sp"
+        android:digits="1234567890"
+        android:hint="@string/plank_settings_ring_time_hit" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:width="100sp"
+        android:text="@string/plank_settings_ring_rest_time" />
+
+    <EditText
+        android:id="@+id/plank_settings_ring_rest_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:width="100sp"
+        android:digits="1234567890"
+        android:hint="@string/plank_settings_ring_rest_time_hit" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:width="100sp"
+        android:text="@string/plank_settings_ring_cycles" />
+
+    <EditText
+        android:id="@+id/plank_settings_ring_cycles"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:width="100sp"
+        android:digits="1234567890"
+        android:hint="@string/plank_settings_ring_cycles_hit" />
+
+
+</LinearLayout>
