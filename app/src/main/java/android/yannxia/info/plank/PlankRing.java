@@ -41,8 +41,8 @@ public class PlankRing extends View {
     private Integer ringCycle;
     private Paint plankRing;
     private Paint plankSec;
-    private Integer totalSec;
-    private Integer curSec;
+    private Integer totalSec = 3;
+    private Integer curSec = 0;
     private PlankRingStatus plankRingStatus = PlankRingStatus.SOON_START;
     private PlankRingConfig plankRingConfig;
 
@@ -64,7 +64,7 @@ public class PlankRing extends View {
     public void setPlankRingConfig(PlankRingConfig plankRingConfig) {
         if (PlankRingStatus.SOON_START.equals(this.plankRingStatus)) {
             this.plankRingConfig = plankRingConfig;
-            this.totalSec = plankRingConfig.plankSec;
+//            this.totalSec = plankRingConfig.plankSec;
             this.ringCycle = plankRingConfig.ringCycle;
         }
     }
@@ -79,7 +79,7 @@ public class PlankRing extends View {
             this.totalSec = plankRingConfig.restSec;
         }
 
-        this.curSec = 0;
+        this.curSec = -1;
         switchPaint();
     }
 
@@ -102,8 +102,6 @@ public class PlankRing extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        switchPaint();
-
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
         int circleXCenter = displayMetrics.widthPixels / 2;
         int circleYCenter = displayMetrics.heightPixels / 3;
@@ -120,6 +118,11 @@ public class PlankRing extends View {
         float textSize = radius / 3;
         plankSec.setTextSize(textSize);
         canvas.drawText(String.valueOf(totalSec - curSec), rectF.centerX(), rectF.centerY() - ((plankSec.descent() + plankSec.ascent()) / 2), plankSec);
+
+
+        if (this.totalSec.equals(this.curSec)) {
+            switchStatus();
+        }
     }
 
 
@@ -148,5 +151,9 @@ public class PlankRing extends View {
 
     public Integer getRingCycle() {
         return ringCycle;
+    }
+
+    public PlankRingStatus getPlankRingStatus() {
+        return plankRingStatus;
     }
 }

@@ -15,4 +15,9 @@
     <string name="plank_settings_ring_cycles_key">plank_settings_ring_cycles_key</string>
     <string name="plank_settings_ring_cycles">循环次数</string>
     <string name="plank_settings_ring_cycles_hit">5</string>
+
+
+
+    <string name="start_button_desc">开始运动</string>
+    <string name="remain_cycles">剩余：%d 圈数</string>
 </resources>

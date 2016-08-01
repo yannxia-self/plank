@@ -3,6 +3,8 @@ package android.yannxia.info.plank;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -14,6 +16,8 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import org.apache.commons.lang3.ObjectUtils;
 
@@ -25,6 +29,14 @@ import java.util.concurrent.TimeUnit;
 public class PlankActivity extends AppCompatActivity {
 
     private PlankRing plankRing;
+    private String remainCyclesStr;
+    private SoundPool soundPool;
+    private int soundID;
+    boolean plays = false, loaded = false;
+    float actVolume, maxVolume, volume;
+    AudioManager audioManager;
+    int counter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,43 +46,81 @@ public class PlankActivity extends AppCompatActivity {
         plankRing = (PlankRing) findViewById(R.id.plank_ring);
         setSupportActionBar(toolbar);
         Button startButton = (Button) findViewById(R.id.start_button);
+        final TextView remainCycles = (TextView) findViewById(R.id.remain_cycles);
         final Timer timer = new Timer(true);
+        final PlankRing.PlankRingConfig plankRingConfig = getPlankRingConfig();
+        remainCyclesStr = getString(R.string.remain_cycles);
 
+        remainCycles.setText(String.format(remainCyclesStr, plankRingConfig.ringCycle));
         if (plankRing != null && startButton != null) {
-            final PlankRing.PlankRingConfig plankRingConfig = getPlankRingConfig();
+
             plankRing.setPlankRingConfig(getPlankRingConfig());
-            plankRing.invalidate();;
+            plankRing.invalidate();
             startButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     PlankRingTimerTask
-                            plankRingTimerTask = new PlankRingTimerTask(new PlankRingHandle(plankRing), timer, plankRing, plankRingConfig);
+                            plankRingTimerTask = new PlankRingTimerTask(new PlankRingHandle(plankRing, remainCycles), timer, plankRing, plankRingConfig);
                     timer.schedule(plankRingTimerTask, TimeUnit.SECONDS.toMillis(1), TimeUnit.SECONDS.toMillis(1));
+
+
+                    playSound();
                 }
             });
+        }
+
+
+        /* sound */
+        // AudioManager audio settings for adjusting the volume
+        audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+        actVolume = (float) audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        maxVolume = (float) audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        volume = actVolume / maxVolume;
+
+        //Hardware buttons setting to adjust the media sound
+        this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
+
+        // the counter will help us recognize the stream id of the sound played  now
+        counter = 0;
+        // Load the sounds
+        soundPool = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
+        soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
+            @Override
+            public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
+                loaded = true;
+            }
+        });
+        soundID = soundPool.load(this, R.raw.beep, 1);
+
+    }
+
+
+    public void playSound() {
+        // Is the sound loaded does it already play?
+        if (loaded && !plays) {
+            soundPool.play(soundID, volume, volume, 1, 0, 1f);
+            counter = counter++;
+            Toast.makeText(this, "Played sound", Toast.LENGTH_SHORT).show();
+            plays = true;
         }
     }
 
 
-    class PlankRingTimerTask extends TimerTask {
+    private class PlankRingTimerTask extends TimerTask {
 
         private PlankRingHandle plankRingHandle;
         private Timer timer;
         private PlankRing plankRing;
-        private PlankRing.PlankRingConfig plankRingConfig;
-        private Integer cycles;
 
         public PlankRingTimerTask(PlankRingHandle plankRingHandle, Timer timer, PlankRing plankRing, PlankRing.PlankRingConfig plankRingConfig) {
             this.plankRingHandle = plankRingHandle;
             this.timer = timer;
             this.plankRing = plankRing;
-            this.plankRingConfig = plankRingConfig;
-            this.cycles = plankRingConfig.ringCycle;
         }
 
         @Override
         public void run() {
-            if (plankRing.getRingCycle() == 0 && (plankRing.getCurSec().equals(plankRing.getTotalSec()))) {
+            if (plankRing.getRingCycle() == 0 && plankRing.getPlankRingStatus().equals(PlankRing.PlankRingStatus.RESTING)) {
                 timer.cancel();
             }
             Message message = new Message();
@@ -79,18 +129,21 @@ public class PlankActivity extends AppCompatActivity {
         }
     }
 
-    static class PlankRingHandle extends Handler {
+    private class PlankRingHandle extends Handler {
 
         private PlankRing plankRing;
+        private TextView remainCycles;
 
-        public PlankRingHandle(PlankRing plankRing) {
+        public PlankRingHandle(PlankRing plankRing, TextView remainCycles) {
             this.plankRing = plankRing;
+            this.remainCycles = remainCycles;
         }
 
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case 1:
+                    remainCycles.setText(String.format(remainCyclesStr, plankRing.getRingCycle()));
                     plankRing.plusSec();
                     plankRing.invalidate();
             }
