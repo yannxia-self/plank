@@ -40,7 +40,7 @@ public class PlankSettingActivity extends AppCompatActivity {
         ringCyclesET.addTextChangedListener(new EditTextWatcher(getString(R.string.plank_settings_ring_cycles_key)));
     }
 
-    class EditTextWatcher implements TextWatcher {
+    private class EditTextWatcher implements TextWatcher {
 
         private String preferenceKey;
 
@@ -64,7 +64,7 @@ public class PlankSettingActivity extends AppCompatActivity {
                 SharedPreferences sharedPref = getSharedPreferences(getString(R.string.preference_file_key), MODE_PRIVATE);
                 SharedPreferences.Editor editor = sharedPref.edit();
                 editor.putInt(preferenceKey, Integer.valueOf(s.toString()));
-                editor.commit();
+                editor.apply();
             }
         }
     }

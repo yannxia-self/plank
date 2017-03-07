@@ -36,6 +36,7 @@ public class PlankActivity extends AppCompatActivity {
     float actVolume, maxVolume, volume;
     AudioManager audioManager;
     int counter;
+    Timer timer;
 
 
     @Override
@@ -43,15 +44,19 @@ public class PlankActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_plank);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        plankRing = (PlankRing) findViewById(R.id.plank_ring);
         setSupportActionBar(toolbar);
+
+        //载入所需要的元素
+        plankRing = (PlankRing) findViewById(R.id.plank_ring);
         Button startButton = (Button) findViewById(R.id.start_button);
         final TextView remainCycles = (TextView) findViewById(R.id.remain_cycles);
-        final Timer timer = new Timer(true);
+        timer = new Timer(true);
         final PlankRing.PlankRingConfig plankRingConfig = getPlankRingConfig();
         remainCyclesStr = getString(R.string.remain_cycles);
 
+        assert remainCycles != null;
         remainCycles.setText(String.format(remainCyclesStr, plankRingConfig.ringCycle));
+
         if (plankRing != null && startButton != null) {
 
             plankRing.setPlankRingConfig(getPlankRingConfig());
@@ -62,8 +67,6 @@ public class PlankActivity extends AppCompatActivity {
                     PlankRingTimerTask
                             plankRingTimerTask = new PlankRingTimerTask(new PlankRingHandle(plankRing, remainCycles), timer, plankRing, plankRingConfig);
                     timer.schedule(plankRingTimerTask, TimeUnit.SECONDS.toMillis(1), TimeUnit.SECONDS.toMillis(1));
-
-
                     playSound();
                 }
             });
@@ -167,7 +170,9 @@ public class PlankActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            timer.cancel(); //stop timer
             startActivity(new Intent(this, PlankSettingActivity.class));
+            plankRing.init();
             plankRing.setPlankRingConfig(getPlankRingConfig());
             return true;
         }

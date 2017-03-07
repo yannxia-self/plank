@@ -13,6 +13,9 @@ import java.util.Timer;
 
 /**
  * Created by yann on 16/7/28.
+ *
+ * 这是平板撑软件核心的那个绘制圈功能
+ *
  */
 public class PlankRing extends View {
 
@@ -126,7 +129,7 @@ public class PlankRing extends View {
     }
 
 
-    private void init() {
+    public void init() {
         rectF = new RectF();
         plankRing = new Paint();
         plankRing.setColor(Color.BLUE);
